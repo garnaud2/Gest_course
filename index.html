@@ -24,12 +24,12 @@ table{width:100%;border-collapse:collapse}td,th{padding:7px 5px;border-bottom:1p
 .big{font:700 46px ui-monospace,monospace;text-align:center;margin:6px 0 12px}
 video{width:100%;border-radius:12px;background:#000;max-height:45vh}
 #msg{font-weight:600;min-height:24px;margin:8px 0}.ok{color:#15803d}.warn{color:#b45309}.err{color:#b91c1c}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(calc(var(--qs,8cm) + .6cm),1fr));gap:8px}
 .q{background:#fff;color:#000;border:1px dashed #999;padding:8px;text-align:center;font-size:13px;break-inside:avoid}
-.q svg{width:100%;max-width:130px;height:auto}
+.q svg{display:block;margin:0 auto;width:var(--qs,8cm);max-width:100%;height:auto}
 small,.m{color:var(--m)}
 @page{margin:8mm}
-@media print{header,nav,.noprint{display:none!important}body{background:#fff;padding:0}main{padding:0;max-width:none}.grid{grid-template-columns:repeat(4,1fr);gap:0}.q{font-size:11pt;padding:6mm 2mm}.q svg{max-width:3.4cm}}
+@media print{header,nav,.noprint{display:none!important}body{background:#fff;padding:0}main{padding:0;max-width:none}.grid{grid-template-columns:repeat(var(--cols),1fr);gap:0}.q{font-size:var(--fs);height:var(--qh);padding:3mm 2mm;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}.q svg{max-width:none}}
 </style></head><body>
 <header id="h">Courses scolaires</header>
 <main></main>
@@ -12560,10 +12560,12 @@ function csv(){const r=cur,L=[['Rang','Nom','Prénom','Classe','Niveau','Genre',
 /* ---------- QR codes ---------- */
 function qrView(){if(!S.students.length)return none;
  const o=k=>[...new Set(S.students.map(s=>s[k]).filter(Boolean))].sort().map(v=>`<option value="${k}:${esc(v)}">${esc(v)}`).join('');
- return `<div class="card noprint"><p>QR codes à imprimer</p><div class="row"><select id="qf" onchange="qg()"><option value="">Tous les élèves<optgroup label="Niveau">${o('niveau')}</optgroup><optgroup label="Classe">${o('classe')}</optgroup></select><button onclick="print()">🖨 Imprimer</button></div><small>Chaque QR code contient un identifiant ; à découper et à fixer sur le dossard.</small></div><div class="grid" id="qg"></div>`}
-function qg(){const f=$('#qf').value.split(':'),L=S.students.filter(s=>!f[0]||s[f[0]]==f.slice(1).join(':'));
- $('#qg').innerHTML=L.map(s=>{const q=qrcode(0,'M');q.addData(s.id);q.make();
-  return `<div class="q">${q.createSvgTag({cellSize:4,margin:0,scalable:true})}<br><b>${esc(s.nom)}</b><br>${esc(s.prenom)}<br><small style="color:#444">${esc(s.classe)}</small></div>`}).join('')}
+ return `<div class="card noprint"><p>QR codes à imprimer</p><div class="row"><select id="qf" onchange="qg()"><option value="">Tous les élèves<optgroup label="Niveau">${o('niveau')}</optgroup><optgroup label="Classe">${o('classe')}</optgroup></select><select id="qs" onchange="qg()"><option value="8">Grand : 8 cm, 4 par page (dossard poitrine)<option value="6">Moyen : 6 cm, 6 par page<option value="4">Petit : 4 cm, 12 par page</select><button onclick="print()">🖨 Imprimer</button></div><small>Taille indiquée = QR code avec sa marge blanche. Imprimer en noir sur papier blanc mat, à 100 % (sans « ajuster à la page »), à découper et à épingler bien à plat.</small></div><div class="grid" id="qg"></div>`}
+const Z={8:{c:2,h:'13.8cm',f:'15pt'},6:{c:2,h:'9.2cm',f:'12pt'},4:{c:3,h:'6.8cm',f:'9pt'}};
+function qg(){const z=$('#qs').value,Q=Z[z],f=$('#qf').value.split(':'),g=$('#qg');
+ g.style.cssText=`--qs:${z}cm;--cols:${Q.c};--qh:${Q.h};--fs:${Q.fs||Q.f}`;
+ g.innerHTML=S.students.filter(s=>!f[0]||s[f[0]]==f.slice(1).join(':')).map(s=>{const q=qrcode(0,'Q');q.addData(s.id);q.make();
+  return `<div class="q">${q.createSvgTag({cellSize:4,margin:16,scalable:true})}<div><b>${esc(s.nom)}</b></div><div>${esc(s.prenom)}</div><small style="color:#444">${esc(s.classe)}</small></div>`}).join('')}
 
 render();
 navigator.storage&&navigator.storage.persist&&navigator.storage.persist();
